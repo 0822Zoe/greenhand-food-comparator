@@ -1,5 +1,182 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f7f6f1"><link rel="manifest" href="./manifest.json"><title>GreenHand</title><script src="./vendor/supabase.js"></script><style>
-:root{--ink:#20251f;--muted:#72786f;--line:#e5e5dc;--paper:#f7f6f1;--white:#fff;--green:#365e49;--soft:#edf2eb;font:16px/1.5 Inter,ui-sans-serif,system-ui}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink)}header{border-bottom:1px solid var(--line);background:#ffffffd9;position:sticky;top:0;z-index:2;backdrop-filter:blur(12px)}.bar{max-width:1100px;margin:auto;padding:14px 22px;display:flex;justify-content:space-between;align-items:center}.brand{font-family:Georgia,serif;font-size:24px;letter-spacing:-.04em}.brand span{color:var(--green)}select,input,button{font:inherit;border-radius:9px;padding:10px 12px;border:1px solid var(--line);background:white;color:inherit}button{cursor:pointer;background:var(--green);color:white;border-color:var(--green);font-weight:600}button.ghost{background:white;color:var(--green)}main{max-width:1100px;margin:36px auto;padding:0 22px}.hero{max-width:760px;margin:0 0 28px}.eyebrow{text-transform:uppercase;letter-spacing:.14em;color:var(--green);font-size:12px;font-weight:700}.hero h1{font:clamp(36px,6vw,62px)/1.03 Georgia,serif;letter-spacing:-.04em;margin:10px 0 12px}.hero p{color:var(--muted);max-width:640px}.notice{font-size:13px;color:#675d42;border-left:3px solid #b99d5e;padding:9px 14px;margin:20px 0}.layout{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}.panel{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:22px}.panel h2{font:24px Georgia,serif;margin:0 0 16px}.stack{display:grid;gap:12px}.fields{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:9px}.fields.two{grid-template-columns:1fr 1fr}.field label{display:block;color:var(--muted);font-size:12px;margin:0 0 4px}.field input,.field select{width:100%}.wide{grid-column:1/-1}.subtle{color:var(--muted);font-size:13px}.list{list-style:none;padding:0;margin:14px 0 0}.list li{border-top:1px solid var(--line);padding:10px 0;display:flex;justify-content:space-between;gap:10px}.delete{background:none;color:#8a554c;border:0;padding:2px 8px}.result{padding:12px 0;border-top:1px solid var(--line)}.result strong{display:block}.good{color:#366c48}.warn{color:#986632}.bad{color:#994f46}.authrow{display:grid;grid-template-columns:1fr 1fr;gap:9px}.authrow input{grid-column:1/-1}.bottom{margin-top:18px}.hidden{display:none!important}@media(max-width:760px){.layout{grid-template-columns:1fr}.bar{padding:12px 16px}main{margin-top:25px;padding:0 16px}.panel{padding:17px}.fields{grid-template-columns:1fr 1fr}.fields .field:first-child{grid-column:1/-1}}
-</style></head><body><header><div class="bar"><div class="brand">green<span>hand</span></div><select id="lang"><option value="en">English</option><option value="fr">Français</option><option value="zh">中文</option></select></div></header><main><section class="hero"><div class="eyebrow" id="kicker"></div><h1 id="title"></h1><p id="intro"></p></section><p class="notice" id="disclaimer"></p><section class="panel" id="authpanel"><h2 id="authTitle"></h2><form id="auth" class="authrow"><input name="email" type="email" required><input name="password" type="password" minlength="8" required><button id="signup"></button><button id="signin" class="ghost"></button></form><button id="signout" class="ghost hidden"></button><p id="status" class="subtle"></p></section><div class="layout bottom"><section class="panel"><h2 id="entryTitle"></h2><form id="food" class="stack"><div class="fields"><div class="field"><label id="labFood"></label><input name="food_name" required></div><div class="field"><label id="labGroup"></label><select name="food_group" id="group"></select></div><div class="field"><label id="labAmount"></label><input name="amount" type="number" min="0" step=".1" required></div></div><div class="fields"><div class="field"><label id="labSalt"></label><input name="salt_g" type="number" min="0" step=".01"></div><div class="field"><label id="labSugar"></label><input name="free_sugar_g" type="number" min="0" step=".1"></div><div class="field"><label id="labEnergy"></label><input name="energy_kcal" type="number" min="0" step="1"></div></div><div class="fields two"><div class="field"><label id="labDate"></label><input name="eaten_on" type="date"></div><div class="field"><label>&nbsp;</label><button id="save"></button></div></div></form><ul class="list" id="entries"></ul></section><section class="panel"><h2 id="rulesTitle"></h2><form id="rule" class="stack"><div class="field"><label id="ruleGroupLab"></label><select name="food_group" id="rulegroup"></select></div><div class="fields two"><div class="field"><label id="labMin"></label><input name="min_amount" type="number" min="0" required></div><div class="field"><label id="labMax"></label><input name="max_amount" type="number" min="0" required></div></div><button id="saveRule"></button></form><ul class="list" id="rules"></ul></section></div><section class="panel bottom"><h2 id="analysisTitle"></h2><p class="subtle" id="analysisHint"></p><button id="analyze"></button><div id="analysis" class="bottom"></div></section></main><script>
-const URL='https://dxmdqsktvddlvburtnkv.supabase.co',KEY='sb_publishable_lfMrcOmLdYScnGimlsRAuA_MQmuZZcW',sb=window.supabase.createClient(URL,KEY);const groups=['vegetables and fruits','grains and tubers','meat and alternatives','dairy','oil and fats','sugary drinks','salt','other'];const G={en:['Vegetables & fruits','Grains & tubers','Meat & alternatives','Dairy','Oils & fats','Sugary drinks','Salt','Other'],fr:['Fruits et légumes','Céréales et tubercules','Viande et alternatives','Produits laitiers','Huiles et matières grasses','Boissons sucrées','Sel','Autres'],zh:['蔬菜和水果','谷物和薯类','肉类及替代品','奶及乳制品','油脂','含糖饮料','盐','其他']};const T={en:{kick:'Food diary · personal rules · evidence-aware feedback',title:'A clearer picture of what you eat.',intro:'Record foods and amounts, compare them with rules you choose, and review a few WHO reference indicators when the required nutrition data is available.',disc:'General information only. Not medical advice, diagnosis, or a personalised diet prescription. Your entries sync to your account.',auth:'Your account',email:'Email address',pass:'Password (8+ characters)',up:'Create account',in:'Sign in',out:'Sign out',entry:'Add a food entry',food:'Food name',group:'Food group',amount:'Amount (g)',salt:'Salt (g, optional)',sugar:'Free sugars (g, optional)',energy:'Energy (kcal, optional)',date:'Date',save:'Save entry',rules:'Your comparison rules',rgroup:'Group',min:'Minimum (g)',max:'Maximum (g)',saveRule:'Save rule',analysis:'Reference review',hint:'WHO general references for ages 10+: fruit and vegetables ≥400 g/day; adults: salt <5 g/day; free sugars <10% of total energy. Missing inputs are reported as not assessed.',analyze:'Review today',empty:'No entries yet.',within:'Within your rule',below:'Below your rule',above:'Above your rule',not:'Not assessed',fruit:'Fruit and vegetables',saltResult:'Salt',sugarResult:'Free sugars',error:'Please sign in first.'},fr:{kick:'Journal alimentaire · règles personnelles · repères',title:'Mieux comprendre votre alimentation.',intro:'Notez les aliments et quantités, comparez-les à vos règles et consultez les repères OMS lorsque les données nécessaires sont disponibles.',disc:'Information générale uniquement. Pas un avis médical, un diagnostic ni une prescription personnalisée. Vos données sont synchronisées avec votre compte.',auth:'Votre compte',email:'Adresse e-mail',pass:'Mot de passe (8 caractères min.)',up:'Créer un compte',in:'Connexion',out:'Déconnexion',entry:'Ajouter un aliment',food:'Nom de l’aliment',group:'Groupe alimentaire',amount:'Quantité (g)',salt:'Sel (g, facultatif)',sugar:'Sucres libres (g, facultatif)',energy:'Énergie (kcal, facultatif)',date:'Date',save:'Enregistrer',rules:'Mes règles de comparaison',rgroup:'Groupe',min:'Minimum (g)',max:'Maximum (g)',saveRule:'Enregistrer la règle',analysis:'Repères de référence',hint:'Repères OMS généraux dès 10 ans : fruits et légumes ≥400 g/j ; adultes : sel <5 g/j ; sucres libres <10 % de l’énergie totale. Données manquantes = non évalué.',analyze:'Analyser aujourd’hui',empty:'Aucune saisie.',within:'Dans votre règle',below:'Sous votre règle',above:'Au-dessus',not:'Non évalué',fruit:'Fruits et légumes',saltResult:'Sel',sugarResult:'Sucres libres',error:'Veuillez vous connecter.'},zh:{kick:'饮食记录 · 自设规则 · 有依据的反馈',title:'看清每日饮食构成。',intro:'记录食物和份量，按你设定的规则比对；数据齐全时，再查看 WHO 一般参考指标。',disc:'仅供一般信息参考，不是医疗建议、诊断或个性化饮食处方。记录会同步到你的账号。',auth:'账号',email:'邮箱地址',pass:'密码（至少8位）',up:'注册账号',in:'登录',out:'退出登录',entry:'添加食物记录',food:'食物名称',group:'食物组',amount:'数量（克）',salt:'盐（克，可选）',sugar:'游离糖（克，可选）',energy:'能量（千卡，可选）',date:'日期',save:'保存记录',rules:'我的比较规则',rgroup:'食物组',min:'下限（克）',max:'上限（克）',saveRule:'保存规则',analysis:'参考指标研判',hint:'WHO 一般参考：10岁以上蔬果≥400克/日；成人盐<5克/日；游离糖<每日总能量10%。缺少输入时标为“无法评估”。',analyze:'分析今日记录',empty:'暂无记录。',within:'符合自设规则',below:'低于自设范围',above:'高于自设范围',not:'无法评估',fruit:'蔬菜和水果',saltResult:'盐',sugarResult:'游离糖',error:'请先登录。'}};let lang=localStorage.lang||'en',user=null;const $=s=>document.querySelector(s),tr=()=>T[lang];function safe(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function render(){let t=tr();document.documentElement.lang=lang;$('#lang').value=lang;for(let k of ['kick','title','intro','disc','auth','entry','rules','analysis','hint','save','saveRule','analyze']){let id={kick:'kicker',title:'title',intro:'intro',disc:'disclaimer',auth:'authTitle',entry:'entryTitle',rules:'rulesTitle',analysis:'analysisTitle',hint:'analysisHint'}[k]||k;let el=$('#'+id);if(el)el.textContent=t[k]}for(let [id,k] of Object.entries({signup:'up',signin:'in',signout:'out',labFood:'food',labGroup:'group',labAmount:'amount',labSalt:'salt',labSugar:'sugar',labEnergy:'energy',labDate:'date',ruleGroupLab:'rgroup',labMin:'min',labMax:'max'}))$('#'+id).textContent=t[k];for(let id of ['group','rulegroup'])$('#'+id).innerHTML=groups.map((g,i)=>`<option value="${g}">${G[lang][i]}</option>`).join('');$('#signout').classList.toggle('hidden',!user);$('#food').classList.toggle('hidden',!user);$('#rule').classList.toggle('hidden',!user)}async function load(){if(!user)return;let {data}=await sb.from('food_entries').select('*').order('eaten_on',{ascending:false});$('#entries').innerHTML=(data||[]).map(x=>`<li><span>${safe(x.eaten_on)} · ${safe(x.food_name)} · ${x.amount} g · ${safe(G[lang][groups.indexOf(x.food_group)]||x.food_group)}</span><button class="delete" data-id="${x.id}">×</button></li>`).join('')||`<li>${tr().empty}</li>`;let r=await sb.from('comparison_rules').select('*');$('#rules').innerHTML=(r.data||[]).map(x=>`<li>${safe(G[lang][groups.indexOf(x.food_group)]||x.food_group)}: ${x.min_amount}–${x.max_amount} g</li>`).join('')||`<li>${tr().empty}</li>`}$('#lang').onchange=e=>{lang=e.target.value;localStorage.lang=lang;render();load()};$('#auth').onsubmit=async e=>{e.preventDefault();let d=Object.fromEntries(new FormData(e.target)),a=e.submitter.id==='signup'?'signUp':'signInWithPassword',{data,error}=await sb.auth[a]({email:d.email,password:d.password,options:{emailRedirectTo:location.href}});$('#status').textContent=error?.message||'Check your email if confirmation is enabled.';user=data.session?.user||null;if(user){render();load()}};$('#signout').onclick=async()=>{await sb.auth.signOut();user=null;render();$('#entries').innerHTML='';$('#rules').innerHTML=''};$('#food').onsubmit=async e=>{e.preventDefault();if(!user)return;let d=Object.fromEntries(new FormData(e.target));d.user_id=user.id;d.amount=+d.amount;for(let k of ['salt_g','free_sugar_g','energy_kcal'])d[k]=d[k]?+d[k]:null;d.eaten_on=d.eaten_on||new Date().toISOString().slice(0,10);let {error}=await sb.from('food_entries').insert(d);$('#status').textContent=error?.message||'Saved and synced';e.target.reset();load()};$('#entries').onclick=async e=>{if(e.target.dataset.id){await sb.from('food_entries').delete().eq('id',e.target.dataset.id);load()}};$('#rule').onsubmit=async e=>{e.preventDefault();if(!user)return;let d=Object.fromEntries(new FormData(e.target));d.user_id=user.id;d.min_amount=+d.min_amount;d.max_amount=+d.max_amount;d.unit='g';let {error}=await sb.from('comparison_rules').upsert(d,{onConflict:'user_id,food_group,unit'});$('#status').textContent=error?.message||'Rule synced';load()};$('#analyze').onclick=async()=>{if(!user){$('#analysis').textContent=tr().error;return}let {data}=await sb.from('food_entries').select('*').eq('eaten_on',new Date().toISOString().slice(0,10)),a=data||[],t=tr(),fruit=a.filter(x=>x.food_group===groups[0]).reduce((s,x)=>s+Number(x.amount),0),hasSalt=a.some(x=>x.salt_g!==null),salt=a.reduce((s,x)=>s+Number(x.salt_g||0),0),hasSugar=a.some(x=>x.free_sugar_g!==null),sugar=a.reduce((s,x)=>s+Number(x.free_sugar_g||0),0),energy=a.reduce((s,x)=>s+Number(x.energy_kcal||0),0);$('#analysis').innerHTML=`<div class="result"><strong>${t.fruit}: ${fruit} g / 400 g</strong><span class="${fruit>=400?'good':'warn'}">${fruit>=400?t.within:t.below} · WHO reference for ages over 10; amount entered, not a clinical assessment.</span></div><div class="result"><strong>${t.saltResult}</strong><span>${hasSalt?`${salt} g / <5 g per day — ${salt<5?t.within:t.above}`:t.not}</span></div><div class="result"><strong>${t.sugarResult}</strong><span>${hasSugar&&energy?`${sugar} g; energy entered ${energy} kcal. Compare with <10% energy (${(energy*.1/4).toFixed(1)} g approximate)`:t.not}</span></div>`};(async()=>{let {data}=await sb.auth.getSession();user=data.session?.user||null;render();if(user)load()})();if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js');
-</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f4ee">
+  <meta name="description" content="A multilingual food diary with a searchable food catalogue and clear comparison rules.">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <title>GreenHand Food Diary</title>
+  <script defer src="./vendor/supabase.js"></script>
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav wrap">
+      <a class="brand" href="./" aria-label="GreenHand home">green<span>hand</span></a>
+      <div class="nav-tools">
+        <span id="account-state" class="account-state">Not signed in</span>
+        <label class="sr-only" for="language">Language</label>
+        <select id="language" class="language-select">
+          <option value="en">English</option>
+          <option value="fr">Français</option>
+          <option value="zh">中文</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap page-content">
+    <section class="hero">
+      <p class="eyebrow" id="hero-kicker">Food diary · personal rules · reference checks</p>
+      <h1 id="hero-title">Know what is in your daily food log.</h1>
+      <p class="hero-copy" id="hero-copy">Choose foods from the supplied grocery catalogue, record amounts, and compare your own rules with WHO reference indicators.</p>
+      <p class="load-summary" id="load-summary" aria-live="polite">Loading food catalogue…</p>
+    </section>
+
+    <aside class="notice" id="medical-notice" role="note">For personal food tracking only. Do not enter patient records or diagnoses. This tool gives general comparisons, not medical advice or a diet prescription.</aside>
+
+    <section class="panel account-panel" aria-labelledby="account-title">
+      <div class="panel-heading account-heading">
+        <div>
+          <p class="section-kicker" id="account-kicker">Cloud account</p>
+          <h2 id="account-title">Save and sync your own records</h2>
+        </div>
+        <button id="sign-out" class="button button-light is-hidden" type="button">Sign out</button>
+      </div>
+      <div class="account-body">
+        <form id="auth-form" class="auth-form">
+          <label class="field"><span id="email-label">Email</span><input id="email" name="email" type="email" autocomplete="email" required></label>
+          <label class="field"><span id="password-label">Password (8 characters minimum)</span><input id="password" name="password" type="password" minlength="8" autocomplete="current-password" required></label>
+          <div class="auth-actions">
+            <button id="create-account" class="button" type="button">Create account</button>
+            <button id="sign-in" class="button button-light" type="button">Sign in</button>
+          </div>
+        </form>
+        <p class="account-explainer" id="account-explainer">Without an account, entries stay in this browser session and disappear when you close or refresh the page. Sign in to save them to your private account and sync across devices.</p>
+        <p id="app-status" class="status-message" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="main-grid">
+      <section class="panel" aria-labelledby="entry-title">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker" id="entry-kicker">Your daily record</p>
+            <h2 id="entry-title">Add a food</h2>
+          </div>
+          <span class="count-pill" id="entry-count">0</span>
+        </div>
+        <p class="panel-copy" id="entry-help">Search a food from the source catalogue or type a food name. Catalogue foods fill in the mapped group and available nutrition values.</p>
+        <form id="entry-form" class="entry-form">
+          <label class="field field-wide"><span id="food-label">Food</span><input id="food-name" name="food_name" list="food-options" autocomplete="off" required placeholder="Search foods, e.g. whole milk"></label>
+          <datalist id="food-options"></datalist>
+          <label class="field"><span id="group-label">Food group</span><select id="food-group" name="food_group"></select></label>
+          <label class="field"><span id="amount-label">Amount</span><input id="amount" name="amount" type="number" min="0.1" step="0.1" required inputmode="decimal"></label>
+          <label class="field"><span id="unit-label">Unit</span><select id="unit" name="unit"><option value="g">g</option><option value="ml">ml</option></select></label>
+          <label class="field"><span id="date-label">Date</span><input id="eaten-on" name="eaten_on" type="date" required></label>
+          <label class="field"><span id="salt-label">Total salt (g), if known</span><input id="salt-g" name="salt_g" type="number" min="0" step="0.01" inputmode="decimal"></label>
+          <label class="field"><span id="sugar-label">Free sugars (g), if known</span><input id="free-sugar-g" name="free_sugar_g" type="number" min="0" step="0.1" inputmode="decimal"></label>
+          <label class="field"><span id="energy-label">Energy (kcal), if known</span><input id="energy-kcal" name="energy_kcal" type="number" min="0" step="1" inputmode="decimal"></label>
+          <div id="food-detail" class="food-detail field-wide" aria-live="polite"></div>
+          <button id="add-entry" class="button field-wide" type="submit">Add to food log</button>
+        </form>
+        <div class="table-wrap diary-wrap">
+          <table class="data-table">
+            <thead><tr><th id="diary-food-head">Food</th><th id="diary-group-head">Group</th><th id="diary-amount-head">Amount</th><th id="diary-date-head">Date</th><th><span class="sr-only" id="actions-head">Actions</span></th></tr></thead>
+            <tbody id="diary-rows"><tr><td class="empty-cell" colspan="5">No entries in this session.</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel catalog-panel" aria-labelledby="catalog-title">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker" id="catalog-kicker">Source food data</p>
+            <h2 id="catalog-title">Food catalogue</h2>
+          </div>
+          <span class="count-pill" id="catalog-count">0</span>
+        </div>
+        <label class="field catalog-search"><span id="catalog-search-label">Filter foods</span><input id="catalog-search" type="search" placeholder="Type a food name or group"></label>
+        <p class="panel-copy" id="catalog-help">Select “Use” to copy a food into your log. Portions are source sample amounts, not recommended serving sizes.</p>
+        <div class="table-wrap catalog-table-wrap">
+          <table class="data-table catalog-table">
+            <thead><tr><th id="catalog-food-head">Food</th><th id="catalog-group-head">Group</th><th id="catalog-portion-head">Source amount</th><th id="catalog-energy-head">Energy / 100 g</th><th id="catalog-action-head">Action</th></tr></thead>
+            <tbody id="catalog-rows"><tr><td colspan="5" class="empty-cell">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <p class="small-note" id="catalog-source-note"></p>
+      </section>
+    </section>
+
+    <section class="analysis-grid">
+      <section class="panel" aria-labelledby="rules-title">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker" id="rules-kicker">Your limits</p>
+            <h2 id="rules-title">My comparison rules</h2>
+          </div>
+        </div>
+        <p class="panel-copy" id="rules-help">Set a minimum and maximum for a food group. The app compares today’s logged amount using the same unit.</p>
+        <form id="rule-form" class="rule-form">
+          <label class="field field-wide"><span id="rule-group-label">Food group</span><select id="rule-group" name="food_group"></select></label>
+          <label class="field"><span id="min-label">Minimum</span><input name="min_amount" type="number" min="0" step="0.1" required inputmode="decimal"></label>
+          <label class="field"><span id="max-label">Maximum</span><input name="max_amount" type="number" min="0" step="0.1" required inputmode="decimal"></label>
+          <label class="field"><span id="rule-unit-label">Unit</span><select id="rule-unit" name="unit"><option value="g">g</option><option value="ml">ml</option></select></label>
+          <button class="button field-wide" id="save-rule" type="submit">Save my rule</button>
+        </form>
+        <div id="rule-results" class="result-list"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="who-title">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker" id="who-kicker">Public-health reference</p>
+            <h2 id="who-title">WHO indicators for today</h2>
+          </div>
+        </div>
+        <p class="panel-copy" id="who-help">General reference values are not personal targets. Results use only the information you entered and nutrition data available in the catalogue.</p>
+        <div id="who-results" class="result-list"><p class="empty-cell">Add food entries to see a comparison.</p></div>
+        <a id="who-source-link" class="source-link" href="https://www.who.int/news-room/fact-sheets/detail/healthy-diet" target="_blank" rel="noreferrer">WHO healthy diet references</a>
+        <a class="source-link" href="https://www.who.int/news-room/fact-sheets/detail/sodium-reduction" target="_blank" rel="noreferrer">WHO sodium guidance</a>
+      </section>
+    </section>
+
+    <section class="panel association-panel" aria-labelledby="association-title">
+      <div class="panel-heading">
+        <div>
+          <p class="section-kicker" id="association-kicker">From the supplied rules.csv</p>
+          <h2 id="association-title">Foods often bought together</h2>
+        </div>
+        <span class="count-pill" id="association-count">0</span>
+      </div>
+      <p class="panel-copy" id="association-help">These are purchase co-occurrence patterns from the project dataset. They do not indicate health benefit, suitability, or causation.</p>
+      <div id="association-results" class="association-results"><p class="empty-cell">Add foods to see matching patterns.</p></div>
+      <details class="method-details">
+        <summary id="association-method-summary">How to read support, confidence, and lift</summary>
+        <p id="association-method">Support is the share of baskets containing both sides of a rule. Confidence is how often the consequent appeared when the antecedent appeared. Lift compares that rate with the consequent’s overall rate. Lift above 1 means more frequent co-occurrence in this dataset, not a causal or healthy recommendation.</p>
+      </details>
+    </section>
+
+    <details class="panel source-panel">
+      <summary id="source-summary">Data sources, mapping, and storage</summary>
+      <div class="source-content">
+        <p id="source-foods">Food names and category labels come from the provided grocery catalogue. Portion amounts and purchase frequency come from top_50_items_amount.xlsx. Nutrient estimates come from NZFOODNutrients.xlsx and are averaged across mapped FoodIDs where a food has multiple IDs.</p>
+        <p id="source-groups">Food groups are broad mappings from the supplied categories, aligned to the purpose of FAO/WHO GIFT nutrition-sensitive groupings. The supplied data does not include FoodEx2 codes, so this app does not claim official FoodEx2 item coding.</p>
+        <p id="source-intake">Nutrition intake.xlsx is shown as a project-provided reference table. Its values are separate from WHO guidance and are not personalized daily requirements.</p>
+        <p id="source-storage">After sign-in, your food log and personal rules are stored in the GreenHand Supabase Postgres database. Row-level security restricts records to your account. Without sign-in, temporary entries stay in memory in this browser session only.</p>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th id="intake-nutrient-head">Project reference nutrient</th><th id="intake-value-head">Daily value</th><th id="intake-unit-head">Unit</th><th id="intake-direction-head">Direction</th></tr></thead>
+            <tbody id="intake-reference-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+    <footer class="page-footer" id="footer-note">GreenHand is for personal food logging and educational comparison. It is not a diagnostic or treatment tool.</footer>
+  </main>
+</body>
+</html>
